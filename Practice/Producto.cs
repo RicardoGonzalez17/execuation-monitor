@@ -6,11 +6,11 @@ namespace Practice
 {
     internal class Producto
     {
-        public int NumeroModelo { get; set; }
-        public string Nombre { get; set; }
+        public int NumeroModelo { get; private set; }
+        public string Nombre { get; private set; }
         public int Stock { get; private set; }
 
-        public Producto(int stockInicial)
+        private Producto(int stockInicial)
         {
             if (stockInicial < 0)
             {
@@ -18,6 +18,19 @@ namespace Practice
             }
 
             Stock = stockInicial;
+        }
+        public Producto(int numeroModelo, string nombre, int stockInicial) : this(stockInicial)
+        {
+            if (numeroModelo <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(numeroModelo),"El número de modelo debe ser mayor que cero.");
+            }
+            if (string.IsNullOrWhiteSpace(nombre))
+            {
+                throw new ArgumentException("El nombre del producto es obligatorio.",nameof(nombre));
+            }
+            NumeroModelo = numeroModelo;
+            Nombre = nombre;
         }
 
         public bool TryVender(int cantidad)
@@ -65,6 +78,5 @@ namespace Practice
 
             return ResultadoReabastecimiento.Realizado;
         }
-
     }
 }
