@@ -1,5 +1,6 @@
 ﻿using Practice;
 using System;
+using System.Collections.Generic;
 
 namespace CursoRicardo.Depuracion
 {
@@ -29,22 +30,34 @@ namespace CursoRicardo.Depuracion
                 Console.ReadLine();
                 return;
             }
-            //int[] existencias = { 5, 0, 8 };
             int consultasExitosas = 0;
             int entradasInvalidas = 0;
             int ventasRealizadas = 0;
             int reabastecimientosRealizados = 0;
 
-            Producto[] productos = CrearCatalogo();
+            List<Producto> productos = CrearCatalogo();
+            MostrarCatalogo(productos);
 
             while (true)
             {
-                Console.Write("Número de modelo o salir: ");
+                Console.Write("Número de modelo, catalogo, disponibles o salir: ");
                 string entrada = Console.ReadLine();
-
+                entrada = entrada.Trim().ToLowerInvariant();
                 if (entrada == "salir" || entrada == null)
                 {
                     break;
+                }
+                
+                if (entrada == "catalogo")
+                {
+                    MostrarCatalogo(productos);
+                    continue;
+                }
+
+                if (entrada == "disponibles")
+                {
+                    MostrarDisponibles(productos);
+                    continue;
                 }
 
                 bool convertido = int.TryParse(entrada, out int numeroModelo);
@@ -59,7 +72,7 @@ namespace CursoRicardo.Depuracion
                 {
                     Producto seleccionado;
 
-                    bool encontrado = TryObtenerProducto(productos, numeroModelo, out seleccionado);
+                    bool encontrado = Catalogo.TryObtenerProducto(productos, numeroModelo, out seleccionado);
 
                     if (!encontrado)
                     {
@@ -104,47 +117,6 @@ namespace CursoRicardo.Depuracion
             Console.WriteLine($"Ventas realizadas: {ventasRealizadas}");
             Console.WriteLine("Consultas terminadas.");
             Console.ReadLine();
-        }
-
-        static bool TryObtenerProducto(Producto[] productos,int numeroModelo,out Producto productoEncontrado)
-        {
-            productoEncontrado = null;
-
-            if (productos == null)
-            {
-                return false;
-            }
-
-            foreach (Producto producto in productos)
-            {
-                if (producto != null && producto.NumeroModelo == numeroModelo)
-                {
-                    productoEncontrado = producto;
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        static bool TryAgregarProducto(Producto[] productos, Producto nuevo)
-        {
-            if (productos == null || nuevo == null)
-                return false;
-
-            if (TryObtenerProducto(productos, nuevo.NumeroModelo, out _))
-                return false;
-
-            for (int i = 0; i < productos.Length; i++)
-            {
-                if (productos[i] == null)
-                {
-                    productos[i] = nuevo;
-                    return true;
-                }
-            }
-
-            return false; // El arreglo está lleno.
         }
 
         static bool SolicitarVenta(Producto producto)
@@ -211,15 +183,51 @@ namespace CursoRicardo.Depuracion
 
             return resultado == ResultadoReabastecimiento.Realizado;
         }
-        static Producto[] CrearCatalogo()
+        static List<Producto> CrearCatalogo()
         {
             Producto gorraAzul = new Producto(10, "Gorra azul", 5);
-
             Producto gorraNegra = new Producto(25, "Gorra negra", 0);
-
             Producto gorraRoja = new Producto(40, "Gorra roja", 8);
 
-            return new Producto[] { gorraRoja, gorraAzul, gorraNegra };
+            return new List<Producto>
+            {
+                gorraRoja,
+                gorraAzul,
+                gorraNegra
+            };
+        }
+        static void MostrarCatalogo(List<Producto> productos)
+        {
+            Console.WriteLine("Catálogo:");
+
+            foreach (Producto producto in productos)
+            {
+                Console.WriteLine(
+                    $"Modelo {producto.NumeroModelo}: " +
+                    $"{producto.Nombre}. Stock: {producto.Stock}");
+            }
+
+            Console.WriteLine($"Modelos registrados: {productos.Count}");
+        }
+        static void MostrarDisponibles(List<Producto> productos)
+        {
+            int modelosDisponibles = 0;
+
+            foreach (Producto producto in productos)
+            {
+                if (producto.Stock > 0)
+                {
+                    Console.WriteLine($"Modelo {producto.NumeroModelo}: " + $"{producto.Nombre}. Stock: {producto.Stock}");
+
+                    modelosDisponibles++;
+                }
+            }
+            if (modelosDisponibles == 0)
+            {
+                Console.WriteLine("No hay productos con stock disponible.");
+            }
+
+            Console.WriteLine($"Modelos disponibles: {modelosDisponibles}");
         }
     }
 }

@@ -17,13 +17,18 @@ namespace Practice
             int pruebasFallidas = 0;
             Console.WriteLine("=== Inicio de pruebas ===");
 
-            bool[] resultados = {EjecutarPruebaSegura("Motivo: cantidad inválida",ProbarCantidadInvalida),EjecutarPruebaSegura("Stock insuficiente",ProbarStockInsuficiente),
+            bool[] resultados = 
+            {
+                EjecutarPruebaSegura("Motivo: cantidad inválida",ProbarCantidadInvalida),EjecutarPruebaSegura("Stock insuficiente",ProbarStockInsuficiente),
                 EjecutarPruebaSegura("Motivo: límite de stock",ProbarMotivoLimiteStock),EjecutarPruebaSegura("Límite de reabastecimiento",ProbarLimiteReabastecimiento),
                 EjecutarPruebaSegura("Reabastecimiento y venta",ProbarReabastecimientoYVenta),
                 EjecutarPruebaSegura("Venta de cero unidades",() => ProbarVentaRechazada(0)),EjecutarPruebaSegura("Venta de cantidad negativa",() => ProbarVentaRechazada(-3)),
                 EjecutarPruebaSegura("Venta superior al stock",() => ProbarVentaRechazada(6)),EjecutarPruebaSegura("Venta de todo el stock",ProbarVentaDeTodoElStock),EjecutarPruebaSegura("Stock inicial negativo",ProbarStockInicialNegativo),
                 EjecutarPruebaSegura("Stock inicial cero",ProbarStockInicialCero), EjecutarPruebaSegura("Constructor con tres argumentos",ProbarConstructorConTresArgumentos),
-                EjecutarPruebaSegura("Modelo cero", ProbarModeloCero), EjecutarPruebaSegura("Primer modelo válido", ProbarPrimerModeloValido),EjecutarPruebaSegura("Nombre con solo espacios", ProbarNombreSoloEspacios)
+                EjecutarPruebaSegura("Modelo cero", ProbarModeloCero), EjecutarPruebaSegura("Primer modelo válido", ProbarPrimerModeloValido),EjecutarPruebaSegura("Nombre con solo espacios", ProbarNombreSoloEspacios),EjecutarPruebaSegura("Registro de modelo duplicado",ProbarRegistroDuplicado),
+                EjecutarPruebaSegura("Registro con espacio disponible",ProbarRegistroConEspacio), EjecutarPruebaSegura("Registro sin espacio disponible",ProbarRegistroSinEspacio),
+                EjecutarPruebaSegura("Registro duplicado en lista",ProbarRegistroDuplicadoEnLista), EjecutarPruebaSegura("Crecimiento de lista",ProbarCrecimientoDeLista),
+                EjecutarPruebaSegura("Búsqueda por modelo en lista",ProbarBusquedaEnLista), EjecutarPruebaSegura("Modelo inexistente en lista",ProbarModeloInexistenteEnLista)
             };
 
             foreach (bool paso in resultados)
@@ -211,6 +216,115 @@ namespace Practice
             {
                 return ex.ParamName == "nombre";
             }
+        }
+        private static bool ProbarRegistroDuplicado()
+        {
+            Producto gorraNegra = new Producto(25, "Gorra negra", 0);
+            Producto gorraRoja = new Producto(25, "Gorra roja", 8);
+
+            Producto[] productos = { null, gorraNegra };
+
+            bool agregado = Catalogo.TryAgregarProducto(
+                productos, gorraRoja);
+
+            bool pruebaCorrecta = !agregado && productos[0] == null && productos[1] == gorraNegra;
+
+            Console.WriteLine(pruebaCorrecta ? "OK: modelo duplicado rechazado sin modificar el catálogo." : "FALLÓ: registro de modelo duplicado.");
+
+            return pruebaCorrecta;
+        }
+        private static bool ProbarRegistroConEspacio()
+        {
+            Producto gorraNegra = new Producto(25, "Gorra negra", 0);
+            Producto gorraAzul = new Producto(40, "Gorra azul", 5);
+
+            Producto[] productos = { null, gorraNegra };
+
+            bool agregado = Catalogo.TryAgregarProducto(productos, gorraAzul);
+
+            bool pruebaCorrecta = agregado && productos[0] == gorraAzul && productos[1] == gorraNegra;
+
+            Console.WriteLine(pruebaCorrecta ? "OK: producto agregado sin modificar los existentes." : "FALLÓ: registro con espacio disponible.");
+            return pruebaCorrecta;
+        }
+        private static bool ProbarRegistroSinEspacio()
+        {
+            Producto gorraNegra = new Producto(25, "Gorra negra", 0);
+            Producto gorraAzul = new Producto(40, "Gorra azul", 5);
+            Producto gorraVerde = new Producto(50, "Gorra verde", 3);
+
+            Producto[] productos = { gorraAzul, gorraNegra };
+
+            bool agregado = Catalogo.TryAgregarProducto(productos, gorraVerde);
+
+            bool pruebaCorrecta = !agregado && productos[0] == gorraAzul && productos[1] == gorraNegra;
+
+            Console.WriteLine(pruebaCorrecta ? "OK: catálogo lleno rechazó el registro sin modificar productos." : "FALLÓ: registro sin espacio.");
+            return pruebaCorrecta;
+        }
+        private static bool ProbarRegistroDuplicadoEnLista()
+        {
+            List<Producto> productos = new List<Producto>();
+
+            Producto gorraNegra = new Producto(25, "Gorra negra", 0);
+            Producto gorraRoja = new Producto(25, "Gorra roja", 8);
+
+            bool primero = Catalogo.TryAgregarProducto(productos, gorraNegra);
+            bool segundo = Catalogo.TryAgregarProducto(productos, gorraRoja);
+
+            bool pruebaCorrecta = primero && !segundo && productos.Count == 1 && productos[0] == gorraNegra;
+
+            Console.WriteLine(pruebaCorrecta ? "OK: lista rechaza duplicados y conserva el producto original." : "FALLÓ: registro duplicado en lista.");
+
+            return pruebaCorrecta;
+        }
+        private static bool ProbarCrecimientoDeLista()
+        {
+            Producto gorraNegra = new Producto(25, "Gorra negra", 0);
+            Producto gorraAzul = new Producto(40, "Gorra azul", 5);
+            Producto gorraVerde = new Producto(50, "Gorra verde", 3);
+
+            List<Producto> productos = new List<Producto>
+            {
+                gorraNegra,
+                gorraAzul
+            };
+
+            bool agregado = Catalogo.TryAgregarProducto(productos, gorraVerde);
+
+            bool pruebaCorrecta = agregado && productos.Count == 3 && productos[0] == gorraNegra && productos[1] == gorraAzul && productos[2] == gorraVerde;
+
+            Console.WriteLine(pruebaCorrecta ? "OK: la lista crece y conserva los productos existentes." : "FALLÓ: crecimiento de la lista.");
+
+            return pruebaCorrecta;
+        }
+        private static bool ProbarBusquedaEnLista()
+        {
+            Producto gorraRoja = new Producto(40, "Gorra roja", 8);
+            Producto gorraAzul = new Producto(10, "Gorra azul", 5);
+
+            List<Producto> productos = new List<Producto>
+            {
+                gorraRoja,
+                gorraAzul
+            };
+
+            bool existe = Catalogo.TryObtenerProducto(productos, 10, out Producto encontrado);
+
+            return existe && encontrado == gorraAzul;
+        }
+        private static bool ProbarModeloInexistenteEnLista()
+        {
+            Producto gorraAzul = new Producto(10, "Gorra azul", 5);
+
+            List<Producto> productos = new List<Producto>
+            {
+                gorraAzul
+            };
+
+            bool existe = Catalogo.TryObtenerProducto(productos, 99, out Producto encontrado);
+
+            return existe == false && encontrado == null;
         }
     }
 }
